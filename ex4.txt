@@ -1,0 +1,173 @@
+//EX 4: YACC PROGRAMS:
+
+//VALIDATE ARITH EXPRESSION:
+%{
+#include<stdio.h>
+#include<ctype.h>
+#include<stdlib.h>
+#include<string.h>
+#define YYSTYPE double
+%}
+%token num
+%left '+' '-'
+%left '*' '/'
+%%
+st: st expr '\n' {printf("The given expression is Valid");} |st '\n'
+|
+|error '\n' {printf("The given expression is Invalid");}
+;
+  
+expr: num |expr '+' expr |expr '/' expr %%
+main()
+{
+printf(" Enter the expression to be validated:"); yyparse();
+}
+yylex()
+{
+int ch;
+while((ch=getchar())==' '); if(isdigit(ch)|ch=='.')
+{
+ungetc(ch,stdin);
+scanf("%lf",&yylval);
+return num;
+}
+return ch;
+}
+yyerror(char *s)
+{
+printf("%S",s);
+}
+---------------------------------------------------------------------------
+//VALIDATE VARIABLE:
+
+%{
+#include<stdio.h>
+#include<ctype.h>
+%}
+%token let dig
+%%
+sad: let recld '\n' {printf("accepted\n"); exit(0);} | let '\n' {printf("accepted\n"); exit(0);}
+|
+|error {yyerror(" rejected\n");}
+;
+recld: let recld
+| dig recld
+| let
+| dig
+;
+%%
+yylex(){
+  
+char ch; while((ch=getchar())==' '); if(isalpha(ch))
+return let;
+if(isdigit(ch))
+return dig;
+return ch;
+}
+yyerror(char *s){ printf("%s",s);
+}
+main(){
+printf("ENTER A variable : "); yyparse();
+}
+---------------------------------------------------------------------------
+//CALCULATOR USING LEX AND YACC
+cal.l
+%{
+#include <stdlib.h>
+#include <stdio.h>
+#include "y.tab.h"
+void yyerror(char*);
+extern int yylval;
+%}
+%%
+[ \t]+ ;
+[0-9]+ {yylval = atoi(yytext); return INTEGER;}
+[-+*/] {return *yytext;}
+To write a Program to implement Calculator using LEX and YACC.
+  
+"(" {return *yytext;}
+")" {return *yytext;}
+\n {return *yytext;}
+. {char msg[25];
+sprintf(msg,"%s <%s>","invalid character",yytext); yyerror(msg);
+}
+cal.y
+%{
+#include <stdlib.h>
+#include <stdio.h>
+int yylex(void);
+#include "y.tab.h"
+%}
+%token INTEGER
+%%
+program:
+line program
+| line
+line:
+expr '\n' { printf("%d\n",$1); }
+| 'n'
+expr:
+expr '+' mulex { $$ = $1 + $3; } | expr '-' mulex { $$ = $1 - $3; } | mulex { $$ = $1; }
+mulex:
+mulex '*' term { $$ = $1 * $3; } | mulex '/' term { $$ = $1 / $3; } | term { $$ = $1; }
+term:
+'(' expr ')' { $$ = $2; }
+| INTEGER { $$ = $1; }
+%%
+void yyerror(char *s)
+{
+fprintf(stderr,"%s\n",s);
+return;
+}
+yywrap()
+{
+return(1);
+}
+int main(void)
+{
+yyparse();
+return 0;
+}
+---------------------------------------------------------------------------
+//POSTFIX:
+LEX.L
+
+%{
+#include<stdlib.h>
+#include<stdio.h>
+#include"y.tab.h"
+%}
+%%
+[0-9]+ {yylval.no=atoi(yytext);return(DIGIT); } [a-z|A-Z][a-z|A-Z|0-9_]* {strcpy(yylval.str,yytext);return (ID);} "+" {return(PLUS);}
+"-" {return(MINUS);}
+"*" {return(MUL);}
+"/" {return(DIV);}
+"^" {return(EXPO);}
+"(" {return(OPEN);}
+To write the C program for implementing postfix notation using lex and yacc
+")" {return(CLOSE);} "\n" {return 0;}
+[\t] ;
+%%
+
+//PROGRAM FOR POSTFIX NOTATION USING YACC TOOL
+%{ #include<stdio.h> %}
+%union
+{
+int no;
+char str[10]; }
+%token<no> DIGIT %token<str> ID %left PLUS MINUS %left MUL DIV %right EXPO
+%left OPEN CLOSE
+%%
+STMT: EXPR{printf("\n");}
+EXPR: EXPR PLUS EXPR{printf("+");} | EXPR MINUS EXPR{printf("-");}
+| EXPR MUL EXPR{printf("*");} | EXPR DIV EXPR{printf("/");}
+| EXPR EXPO EXPR{printf("^");} | OPEN EXPR CLOSE
+| DIGIT{printf("%d",yylval.no);} | ID{printf("%s",yylval.str);}
+
+;
+%%
+int main(void) {
+printf("\n"); yyparse(); printf("\n"); return 0;
+}
+int yywrap() {
+return 1; }
